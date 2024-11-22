@@ -10,7 +10,8 @@ in the case of a DNS timeout *when the DNS resolution takes longer than the Http
 If the DNS resolution completes before the HttpRequest timeout, then the exception shows a root
 cause of UnresolvedAddressException (see output for `make break-fast-timeout`).
 
-By default, when there is a DNS problem, the request blocks for a fixed timeout when using the system's DNS resolver of 10 seconds, and this appears to be due to:
+By default, when there is a DNS problem, the request blocks for a fixed timeout when using the system's DNS resolver of 10 seconds, and this appears to be due to
+the defualt resolver timeout (`RES_TIMEOUT`) of 5 seconds for 2 attempts (`RES_DFLRETRY`):
 
 ```
               timeout:n
@@ -35,7 +36,7 @@ By default, when there is a DNS problem, the request blocks for a fixed timeout 
 
 (source: [Linux resolv.conf man page](https://man7.org/linux/man-pages/man5/resolv.conf.5.html))
 
-For testing, this sets a timeout of 1 second to speed up the process.
+For testing failures, this sets a timeout of 1 second to speed up the process except for the `make break` case.
 
 ## Usage
 
