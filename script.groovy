@@ -3,7 +3,8 @@ import java.time.Duration;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
-request = HttpRequest.newBuilder(new URI("https://www.google.com/")).GET().timeout(Duration.of(1, SECONDS)).build();
+// Give enough time for 2 DNS attempts with a 1 second timeout
+request = HttpRequest.newBuilder(new URI("https://www.google.com/")).GET().timeout(Duration.of(3, SECONDS)).build();
 
 start = System.currentTimeMillis();
 try {
