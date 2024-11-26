@@ -63,6 +63,7 @@ work-on-dns-retry: SUCCESS! Took 1.324 seconds. (GET https://www.google.com/) 20
 unreachable-url: FAILURE! Took 3.104 seconds. Root cause exception: java.net.ConnectException: HTTP connect timed out
 unreachable-url-with-patch: FAILURE! Took 3.098 seconds. Root cause exception: java.net.ConnectException: HTTP connect timed out
 break-faster-timeout-dns: FAILURE! Took 2.134 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
+break-faster-timeout-dns-with-patch: FAILURE! Took 2.134 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
 break-faster-timeout-connect: FAILURE! Took 4.121 seconds. Root cause exception: java.net.ConnectException: HTTP connect timed out
 break-faster-timeout-connect-with-patch: FAILURE! Took 4.127 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
 ```
