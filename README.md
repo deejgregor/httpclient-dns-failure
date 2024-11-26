@@ -6,14 +6,14 @@ is returned when there is a DNS failure.
 
 It does confusingly return a "java.net.ConnectException: HTTP connect timed out" exception
 in the case of a DNS timeout *when the DNS resolution takes longer than the HttpRequest timeout*
-(see output for `break-faster-timeout-connect`).
+(see output for `no-dns-faster-timeout-connect`).
 
 If the DNS resolution completes before the HttpRequest timeout, then the exception shows a root
-cause of UnresolvedAddressException (see output for `break-faster-timeout-dns`).
+cause of UnresolvedAddressException (see output for `no-dns-faster-timeout-dns`).
 
 With [this patch to MultiExchange.java](multiexchange.patch), it will throw an
 UnresolvedAddressException regardless of which timeout is longer (see output for
-`break-faster-timeout-connect-with-patch`).
+`no-dns-faster-timeout-connect-with-patch`).
 
 By default, when there is a DNS problem, the request blocks for a fixed timeout when using the system's DNS resolver of 10 seconds, and this appears to be due to
 the defualt resolver timeout (`RES_TIMEOUT`) of 5 seconds for 2 attempts (`RES_DFLRETRY`):
@@ -45,239 +45,263 @@ For testing failures, this sets a timeout of 1 second to speed up the process ex
 
 ## Usage
 
-- `make all` -- run all tests, show summary output
-- `make help` -- list all targets
-- `make clean` -- remove the Docker image we create
+- `./test.sh` -- run all tests, show summary output
 
-## `make all` output
+## `./test.sh` output
 
 ```
-docker build -q -t httpclient-dns-failure .
-sha256:5cddc5937f8b4fa5152170576e4b3534cfa501a9f00687945fe4f35da4be5931
+sha256:3469cd26c347ee280ef4cb62307bbabae79959f1124b681b27d876d39938a958
 
 What's next:
     View a summary of image vulnerabilities and recommendations → docker scout quickview
-docker run -it --rm httpclient-dns-failure java -version
+==> /etc/oracle-release <==
+Oracle Linux Server release 9.5
+
+==> /etc/os-release <==
+NAME="Oracle Linux Server"
+
+==> /etc/redhat-release <==
+Red Hat Enterprise Linux release 9.5 (Plow)
+
+==> /etc/system-release <==
+Oracle Linux Server release 9.5
 openjdk version "21.0.5" 2024-10-15 LTS
 OpenJDK Runtime Environment (Red_Hat-21.0.5.0.11-1.0.1) (build 21.0.5+11-LTS)
 OpenJDK 64-Bit Server VM (Red_Hat-21.0.5.0.11-1.0.1) (build 21.0.5+11-LTS, mixed mode, sharing)
-work: SUCCESS! Took 0.32 seconds. (GET https://www.google.com/) 200
-work-on-dns-retry: SUCCESS! Took 1.327 seconds. (GET https://www.google.com/) 200
-unreachable-url: FAILURE! Took 3.101 seconds. Root cause exception: java.net.ConnectException: HTTP connect timed out
-unreachable-url-with-patch: FAILURE! Took 3.097 seconds. Root cause exception: java.net.ConnectException: HTTP connect timed out
-break-faster-timeout-dns: FAILURE! Took 2.144 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
-break-faster-timeout-dns-with-patch: FAILURE! Took 2.131 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
-break-faster-timeout-connect: FAILURE! Took 4.153 seconds. Root cause exception: java.net.ConnectException: HTTP connect timed out
-break-faster-timeout-connect-with-patch: FAILURE! Took 4.152 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
+
+========= REQUEST_TIMEOUT = PT3S, CONNECT_TIMEOUT = -, ASYNC = sync ========
+                                    work: SUCCESS! Took 0.312 seconds: (GET https://www.google.com/) 200
+                       work-on-dns-retry: SUCCESS! Took 1.342 seconds: (GET https://www.google.com/) 200
+                         unreachable-url: FAILURE! Took 3.093 seconds: Root cause exception: java.net.ConnectException: HTTP connect timed out
+              unreachable-url-with-patch: FAILURE! Took 3.102 seconds: Root cause exception: java.net.ConnectException: HTTP connect timed out
+               no-dns-faster-timeout-dns: FAILURE! Took 2.116 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
+    no-dns-faster-timeout-dns-with-patch: FAILURE! Took 2.139 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
+           no-dns-faster-timeout-connect: FAILURE! Took 4.128 seconds: Root cause exception: java.net.ConnectException: HTTP connect timed out
+no-dns-faster-timeout-connect-with-patch: FAILURE! Took 4.136 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
+
+========= REQUEST_TIMEOUT = PT3S, CONNECT_TIMEOUT = -, ASYNC = async ========
+                                    work: SUCCESS! Took 0.328 seconds: (GET https://www.google.com/) 200
+                       work-on-dns-retry: SUCCESS! Took 1.344 seconds: (GET https://www.google.com/) 200
+                         unreachable-url: FAILURE! Took 3.090 seconds: Root cause exception: java.net.ConnectException: HTTP connect timed out
+              unreachable-url-with-patch: FAILURE! Took 3.106 seconds: Root cause exception: java.net.ConnectException: HTTP connect timed out
+               no-dns-faster-timeout-dns: FAILURE! Took 2.133 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
+    no-dns-faster-timeout-dns-with-patch: FAILURE! Took 2.144 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
+           no-dns-faster-timeout-connect: FAILURE! Took 4.123 seconds: Root cause exception: java.net.ConnectException: HTTP connect timed out
+no-dns-faster-timeout-connect-with-patch: FAILURE! Took 4.139 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
+
+========= REQUEST_TIMEOUT = -, CONNECT_TIMEOUT = PT3S, ASYNC = sync ========
+                                    work: SUCCESS! Took 0.319 seconds: (GET https://www.google.com/) 200
+                       work-on-dns-retry: SUCCESS! Took 1.327 seconds: (GET https://www.google.com/) 200
+                         unreachable-url: FAILURE! Took 3.099 seconds: Root cause exception: java.net.ConnectException: HTTP connect timed out
+              unreachable-url-with-patch: FAILURE! Took 3.112 seconds: Root cause exception: java.net.ConnectException: HTTP connect timed out
+               no-dns-faster-timeout-dns: FAILURE! Took 2.125 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
+    no-dns-faster-timeout-dns-with-patch: FAILURE! Took 2.137 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
+           no-dns-faster-timeout-connect: FAILURE! Took 4.116 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
+no-dns-faster-timeout-connect-with-patch: FAILURE! Took 4.145 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
+
+========= REQUEST_TIMEOUT = -, CONNECT_TIMEOUT = PT3S, ASYNC = async ========
+                                    work: SUCCESS! Took 0.306 seconds: (GET https://www.google.com/) 200
+                       work-on-dns-retry: SUCCESS! Took 1.344 seconds: (GET https://www.google.com/) 200
+                         unreachable-url: FAILURE! Took 3.104 seconds: Root cause exception: java.net.ConnectException: HTTP connect timed out
+              unreachable-url-with-patch: FAILURE! Took 3.115 seconds: Root cause exception: java.net.ConnectException: HTTP connect timed out
+               no-dns-faster-timeout-dns: FAILURE! Took 2.122 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
+    no-dns-faster-timeout-dns-with-patch: FAILURE! Took 2.120 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
+           no-dns-faster-timeout-connect: FAILURE! Took 4.135 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
+no-dns-faster-timeout-connect-with-patch: FAILURE! Took 4.143 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
 ```
 
-## `make DOCKER_BUILD=-q DEBUG=true break-faster-timeout-dns`
+## `DEBUG=true ./test.sh no-dns-faster-timeout-dns`
 
 ```
-docker build -q -t groovy:tcpdump .
-sha256:49aff5ad14a04255cfba65003eacc988eaa6eee0fe3cf921fe7f7bdb01112af4
-docker run -it --rm -e DEBUG=true -e FIRST_NAMESERVER=192.0.2.1  -e DNS_TIMEOUT=1 groovy:tcpdump /run.sh https://www.google.com/
+sha256:3469cd26c347ee280ef4cb62307bbabae79959f1124b681b27d876d39938a958
+Test case: no-dns-faster-timeout-dns
 ========== BEGIN /etc/resolv.conf ==========
 nameserver 192.0.2.1
 options timeout:1
 =========== END /etc/resolv.conf ===========
 
++ java /HttpClientTimeout.java sync https://www.google.com/ PT3S -
+dropped privs to tcpdump
 tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
 listening on eth0, link-type EN10MB (Ethernet), snapshot length 262144 bytes
-WARNING: Using incubator modules: jdk.incubator.foreign, jdk.incubator.vector
-04:43:30.010337 IP 172.17.0.4.38176 > 192.0.2.1.53: 21914+ A? www.google.com. (32)
-04:43:30.010382 IP 172.17.0.4.38176 > 192.0.2.1.53: 921+ AAAA? www.google.com. (32)
-04:43:31.010795 IP 172.17.0.4.38176 > 192.0.2.1.53: 21914+ A? www.google.com. (32)
-04:43:31.010998 IP 172.17.0.4.38176 > 192.0.2.1.53: 921+ AAAA? www.google.com. (32)
-FAILURE! Took 2.127 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
+22:19:58.754371 IP 172.17.0.4.43914 > 192.0.2.1.domain: 15326+ A? www.google.com. (32)
+22:19:58.754410 IP 172.17.0.4.43914 > 192.0.2.1.domain: 33247+ AAAA? www.google.com. (32)
+22:19:59.756043 IP 172.17.0.4.43914 > 192.0.2.1.domain: 15326+ A? www.google.com. (32)
+22:19:59.756127 IP 172.17.0.4.43914 > 192.0.2.1.domain: 33247+ AAAA? www.google.com. (32)
+FAILURE! Took 2.113 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
 java.net.ConnectException
-	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:574)
-	at java.net.http/jdk.internal.net.http.HttpClientFacade.send(HttpClientFacade.java:123)
-	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
-	at script.run(script.groovy:16)
-	at groovy.lang.GroovyShell.runScriptOrMainOrTestOrRunnable(GroovyShell.java:287)
-	at groovy.lang.GroovyShell.run(GroovyShell.java:393)
-	at groovy.lang.GroovyShell.run(GroovyShell.java:382)
-	at groovy.ui.GroovyMain.processOnce(GroovyMain.java:649)
-	at groovy.ui.GroovyMain.run(GroovyMain.java:389)
-	at groovy.ui.GroovyMain.access$1400(GroovyMain.java:67)
-	at groovy.ui.GroovyMain$GroovyCommand.process(GroovyMain.java:313)
-	at groovy.ui.GroovyMain.processArgs(GroovyMain.java:141)
-	at groovy.ui.GroovyMain.main(GroovyMain.java:114)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
-	at org.codehaus.groovy.tools.GroovyStarter.rootLoader(GroovyStarter.java:115)
-	at org.codehaus.groovy.tools.GroovyStarter.main(GroovyStarter.java:37)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:951)
+	at java.net.http/jdk.internal.net.http.HttpClientFacade.send(HttpClientFacade.java:133)
+	at Main.main(HttpClientTimeout.java:53)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at jdk.compiler/com.sun.tools.javac.launcher.Main.execute(Main.java:484)
+	at jdk.compiler/com.sun.tools.javac.launcher.Main.run(Main.java:208)
+	at jdk.compiler/com.sun.tools.javac.launcher.Main.main(Main.java:135)
 Caused by: java.net.ConnectException
-	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1083)
-	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1041)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:227)
 	at java.net.http/jdk.internal.net.http.AsyncSSLConnection.connectAsync(AsyncSSLConnection.java:56)
-	at java.net.http/jdk.internal.net.http.Http2Connection.createAsync(Http2Connection.java:443)
-	at java.net.http/jdk.internal.net.http.Http2ClientImpl.getConnectionFor(Http2ClientImpl.java:131)
-	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:93)
-	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:349)
-	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:542)
-	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:386)
-	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:378)
-	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:408)
-	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsyncImpl$7(MultiExchange.java:449)
+	at java.net.http/jdk.internal.net.http.Http2Connection.createAsync(Http2Connection.java:527)
+	at java.net.http/jdk.internal.net.http.Http2ClientImpl.getConnectionFor(Http2ClientImpl.java:138)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:94)
+	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:391)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:584)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:428)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:420)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:413)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsyncImpl$7(MultiExchange.java:454)
 	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
 	at java.base/java.util.concurrent.CompletableFuture.uniHandleStage(CompletableFuture.java:950)
-	at java.base/java.util.concurrent.CompletableFuture.handle(CompletableFuture.java:2340)
-	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:439)
-	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:341)
+	at java.base/java.util.concurrent.CompletableFuture.handle(CompletableFuture.java:2372)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:444)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:346)
 	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1150)
 	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
 	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
-	at java.net.http/jdk.internal.net.http.HttpClientImpl$DelegatingExecutor.execute(HttpClientImpl.java:158)
-	at java.base/java.util.concurrent.CompletableFuture.completeAsync(CompletableFuture.java:2673)
-	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsync(MultiExchange.java:294)
-	at java.net.http/jdk.internal.net.http.HttpClientImpl.sendAsync(HttpClientImpl.java:659)
-	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:553)
-	... 18 more
+	at java.net.http/jdk.internal.net.http.HttpClientImpl$DelegatingExecutor.execute(HttpClientImpl.java:177)
+	at java.base/java.util.concurrent.CompletableFuture.completeAsync(CompletableFuture.java:2719)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsync(MultiExchange.java:299)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.sendAsync(HttpClientImpl.java:1049)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:930)
+	... 7 more
 Caused by: java.nio.channels.UnresolvedAddressException
-	at java.base/sun.nio.ch.Net.checkAddress(Net.java:149)
-	at java.base/sun.nio.ch.Net.checkAddress(Net.java:157)
-	at java.base/sun.nio.ch.SocketChannelImpl.checkRemote(SocketChannelImpl.java:816)
-	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:839)
-	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
-	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
-	... 41 more
+	at java.base/sun.nio.ch.Net.checkAddress(Net.java:137)
+	at java.base/sun.nio.ch.Net.checkAddress(Net.java:145)
+	at java.base/sun.nio.ch.SocketChannelImpl.checkRemote(SocketChannelImpl.java:842)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:865)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:210)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:571)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:212)
+	... 30 more
++ '[' -n true ']'
++ set +x
+
+4 packets captured
+4 packets received by filter
+0 packets dropped by kernel
 ```
 
-## `make DOCKER_BUILD=-q DEBUG=true break-faster-timeout-connect`
+## `DEBUG=true ./test.sh no-dns-faster-timeout-connect`
 
 ```
-docker build -q -t groovy:tcpdump .
-sha256:49aff5ad14a04255cfba65003eacc988eaa6eee0fe3cf921fe7f7bdb01112af4
-docker run -it --rm -e DEBUG=true -e FIRST_NAMESERVER=192.0.2.1  groovy:tcpdump /run.sh https://www.google.com/
+sha256:3469cd26c347ee280ef4cb62307bbabae79959f1124b681b27d876d39938a958
+Test case: no-dns-faster-timeout-connect
 ========== BEGIN /etc/resolv.conf ==========
 nameserver 192.0.2.1
 options timeout:2
 =========== END /etc/resolv.conf ===========
 
++ java /HttpClientTimeout.java sync https://www.google.com/ PT3S -
+dropped privs to tcpdump
 tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
 listening on eth0, link-type EN10MB (Ethernet), snapshot length 262144 bytes
-WARNING: Using incubator modules: jdk.incubator.foreign, jdk.incubator.vector
-04:44:19.621909 IP 172.17.0.4.54460 > 192.0.2.1.53: 36488+ A? www.google.com. (32)
-04:44:19.621949 IP 172.17.0.4.54460 > 192.0.2.1.53: 29321+ AAAA? www.google.com. (32)
-04:44:21.625777 IP 172.17.0.4.54460 > 192.0.2.1.53: 36488+ A? www.google.com. (32)
-04:44:21.625947 IP 172.17.0.4.54460 > 192.0.2.1.53: 29321+ AAAA? www.google.com. (32)
-FAILURE! Took 4.137 seconds. Root cause exception: java.net.ConnectException: HTTP connect timed out
+22:20:13.697038 IP 172.17.0.4.57821 > 192.0.2.1.domain: 37665+ A? www.google.com. (32)
+22:20:13.697071 IP 172.17.0.4.57821 > 192.0.2.1.domain: 49440+ AAAA? www.google.com. (32)
+22:20:15.699663 IP 172.17.0.4.57821 > 192.0.2.1.domain: 37665+ A? www.google.com. (32)
+22:20:15.699726 IP 172.17.0.4.57821 > 192.0.2.1.domain: 49440+ AAAA? www.google.com. (32)
+FAILURE! Took 4.133 seconds: Root cause exception: java.net.ConnectException: HTTP connect timed out
 java.net.http.HttpConnectTimeoutException: HTTP connect timed out
-	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:568)
-	at java.net.http/jdk.internal.net.http.HttpClientFacade.send(HttpClientFacade.java:123)
-	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
-	at script.run(script.groovy:16)
-	at groovy.lang.GroovyShell.runScriptOrMainOrTestOrRunnable(GroovyShell.java:287)
-	at groovy.lang.GroovyShell.run(GroovyShell.java:393)
-	at groovy.lang.GroovyShell.run(GroovyShell.java:382)
-	at groovy.ui.GroovyMain.processOnce(GroovyMain.java:649)
-	at groovy.ui.GroovyMain.run(GroovyMain.java:389)
-	at groovy.ui.GroovyMain.access$1400(GroovyMain.java:67)
-	at groovy.ui.GroovyMain$GroovyCommand.process(GroovyMain.java:313)
-	at groovy.ui.GroovyMain.processArgs(GroovyMain.java:141)
-	at groovy.ui.GroovyMain.main(GroovyMain.java:114)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
-	at org.codehaus.groovy.tools.GroovyStarter.rootLoader(GroovyStarter.java:115)
-	at org.codehaus.groovy.tools.GroovyStarter.main(GroovyStarter.java:37)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:945)
+	at java.net.http/jdk.internal.net.http.HttpClientFacade.send(HttpClientFacade.java:133)
+	at Main.main(HttpClientTimeout.java:53)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at jdk.compiler/com.sun.tools.javac.launcher.Main.execute(Main.java:484)
+	at jdk.compiler/com.sun.tools.javac.launcher.Main.run(Main.java:208)
+	at jdk.compiler/com.sun.tools.javac.launcher.Main.main(Main.java:135)
 Caused by: java.net.http.HttpConnectTimeoutException: HTTP connect timed out
-	at java.net.http/jdk.internal.net.http.MultiExchange.toTimeoutException(MultiExchange.java:580)
-	at java.net.http/jdk.internal.net.http.MultiExchange.getExceptionalCF(MultiExchange.java:527)
-	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsyncImpl$7(MultiExchange.java:447)
+	at java.net.http/jdk.internal.net.http.MultiExchange.toTimeoutException(MultiExchange.java:585)
+	at java.net.http/jdk.internal.net.http.MultiExchange.getExceptionalCF(MultiExchange.java:532)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsyncImpl$7(MultiExchange.java:452)
 	at java.base/java.util.concurrent.CompletableFuture.uniHandle(CompletableFuture.java:934)
 	at java.base/java.util.concurrent.CompletableFuture.uniHandleStage(CompletableFuture.java:950)
-	at java.base/java.util.concurrent.CompletableFuture.handle(CompletableFuture.java:2340)
-	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:439)
-	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:341)
+	at java.base/java.util.concurrent.CompletableFuture.handle(CompletableFuture.java:2372)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:444)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:346)
 	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1150)
 	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
 	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
-	at java.net.http/jdk.internal.net.http.HttpClientImpl$DelegatingExecutor.execute(HttpClientImpl.java:158)
-	at java.base/java.util.concurrent.CompletableFuture.completeAsync(CompletableFuture.java:2673)
-	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsync(MultiExchange.java:294)
-	at java.net.http/jdk.internal.net.http.HttpClientImpl.sendAsync(HttpClientImpl.java:659)
-	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:553)
-	... 18 more
+	at java.net.http/jdk.internal.net.http.HttpClientImpl$DelegatingExecutor.execute(HttpClientImpl.java:177)
+	at java.base/java.util.concurrent.CompletableFuture.completeAsync(CompletableFuture.java:2719)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsync(MultiExchange.java:299)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.sendAsync(HttpClientImpl.java:1049)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:930)
+	... 7 more
 Caused by: java.net.ConnectException: HTTP connect timed out
-	at java.net.http/jdk.internal.net.http.MultiExchange.toTimeoutException(MultiExchange.java:581)
-	... 33 more
+	at java.net.http/jdk.internal.net.http.MultiExchange.toTimeoutException(MultiExchange.java:586)
+	... 22 more
++ '[' -n true ']'
++ set +x
+
+4 packets captured
+4 packets received by filter
+0 packets dropped by kernel
 ```
 
-## `make DOCKER_BUILD=-q DEBUG=true break-faster-timeout-connect-with-patch`
+## `DEBUG=true ./test.sh no-dns-faster-timeout-connect-with-patch`
 
 ```
-docker build -q -t groovy:tcpdump .
-sha256:49aff5ad14a04255cfba65003eacc988eaa6eee0fe3cf921fe7f7bdb01112af4
-docker run -it --rm -e DEBUG=true -e FIRST_NAMESERVER=192.0.2.1  -e PATCH_MODULE=java.net.http=/java.net.http.jar groovy:tcpdump /run.sh https://www.google.com/
+sha256:3469cd26c347ee280ef4cb62307bbabae79959f1124b681b27d876d39938a958
+Test case: no-dns-faster-timeout-connect-with-patch
 ========== BEGIN /etc/resolv.conf ==========
 nameserver 192.0.2.1
 options timeout:2
 =========== END /etc/resolv.conf ===========
 
++ java --patch-module java.net.http=/java.net.http.jar /HttpClientTimeout.java sync https://www.google.com/ PT3S -
+dropped privs to tcpdump
 tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
 listening on eth0, link-type EN10MB (Ethernet), snapshot length 262144 bytes
-WARNING: Using incubator modules: jdk.incubator.vector, jdk.incubator.foreign
-04:44:42.746514 IP 172.17.0.4.48626 > 192.0.2.1.53: 26114+ A? www.google.com. (32)
-04:44:42.746553 IP 172.17.0.4.48626 > 192.0.2.1.53: 37377+ AAAA? www.google.com. (32)
-04:44:44.746948 IP 172.17.0.4.48626 > 192.0.2.1.53: 26114+ A? www.google.com. (32)
-04:44:44.746989 IP 172.17.0.4.48626 > 192.0.2.1.53: 37377+ AAAA? www.google.com. (32)
-FAILURE! Took 4.132 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
+22:20:26.024814 IP 172.17.0.4.49114 > 192.0.2.1.domain: 18945+ A? www.google.com. (32)
+22:20:26.024858 IP 172.17.0.4.49114 > 192.0.2.1.domain: 34563+ AAAA? www.google.com. (32)
+22:20:28.028187 IP 172.17.0.4.49114 > 192.0.2.1.domain: 18945+ A? www.google.com. (32)
+22:20:28.028275 IP 172.17.0.4.49114 > 192.0.2.1.domain: 34563+ AAAA? www.google.com. (32)
+FAILURE! Took 4.141 seconds: Root cause exception: java.nio.channels.UnresolvedAddressException
 java.net.ConnectException
-	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:574)
-	at java.net.http/jdk.internal.net.http.HttpClientFacade.send(HttpClientFacade.java:123)
-	at org.codehaus.groovy.vmplugin.v8.IndyInterface.fromCache(IndyInterface.java:321)
-	at script.run(script.groovy:16)
-	at groovy.lang.GroovyShell.runScriptOrMainOrTestOrRunnable(GroovyShell.java:287)
-	at groovy.lang.GroovyShell.run(GroovyShell.java:393)
-	at groovy.lang.GroovyShell.run(GroovyShell.java:382)
-	at groovy.ui.GroovyMain.processOnce(GroovyMain.java:649)
-	at groovy.ui.GroovyMain.run(GroovyMain.java:389)
-	at groovy.ui.GroovyMain.access$1400(GroovyMain.java:67)
-	at groovy.ui.GroovyMain$GroovyCommand.process(GroovyMain.java:313)
-	at groovy.ui.GroovyMain.processArgs(GroovyMain.java:141)
-	at groovy.ui.GroovyMain.main(GroovyMain.java:114)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
-	at org.codehaus.groovy.tools.GroovyStarter.rootLoader(GroovyStarter.java:115)
-	at org.codehaus.groovy.tools.GroovyStarter.main(GroovyStarter.java:37)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:951)
+	at java.net.http/jdk.internal.net.http.HttpClientFacade.send(HttpClientFacade.java:133)
+	at Main.main(HttpClientTimeout.java:53)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at jdk.compiler/com.sun.tools.javac.launcher.Main.execute(Main.java:484)
+	at jdk.compiler/com.sun.tools.javac.launcher.Main.run(Main.java:208)
+	at jdk.compiler/com.sun.tools.javac.launcher.Main.main(Main.java:135)
 Caused by: java.net.ConnectException
-	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1083)
-	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:198)
+	at java.net.http/jdk.internal.net.http.common.Utils.toConnectException(Utils.java:1041)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:227)
 	at java.net.http/jdk.internal.net.http.AsyncSSLConnection.connectAsync(AsyncSSLConnection.java:56)
-	at java.net.http/jdk.internal.net.http.Http2Connection.createAsync(Http2Connection.java:443)
-	at java.net.http/jdk.internal.net.http.Http2ClientImpl.getConnectionFor(Http2ClientImpl.java:131)
-	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:93)
-	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:349)
-	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:542)
-	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:386)
-	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:378)
-	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:407)
-	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:340)
+	at java.net.http/jdk.internal.net.http.Http2Connection.createAsync(Http2Connection.java:527)
+	at java.net.http/jdk.internal.net.http.Http2ClientImpl.getConnectionFor(Http2ClientImpl.java:138)
+	at java.net.http/jdk.internal.net.http.ExchangeImpl.get(ExchangeImpl.java:94)
+	at java.net.http/jdk.internal.net.http.Exchange.establishExchange(Exchange.java:391)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl0(Exchange.java:584)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsyncImpl(Exchange.java:428)
+	at java.net.http/jdk.internal.net.http.Exchange.responseAsync(Exchange.java:420)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsyncImpl(MultiExchange.java:409)
+	at java.net.http/jdk.internal.net.http.MultiExchange.lambda$responseAsync0$2(MultiExchange.java:342)
 	at java.base/java.util.concurrent.CompletableFuture$UniCompose.tryFire(CompletableFuture.java:1150)
 	at java.base/java.util.concurrent.CompletableFuture.postComplete(CompletableFuture.java:510)
 	at java.base/java.util.concurrent.CompletableFuture$AsyncSupply.run(CompletableFuture.java:1773)
-	at java.net.http/jdk.internal.net.http.HttpClientImpl$DelegatingExecutor.execute(HttpClientImpl.java:158)
-	at java.base/java.util.concurrent.CompletableFuture.completeAsync(CompletableFuture.java:2673)
-	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsync(MultiExchange.java:293)
-	at java.net.http/jdk.internal.net.http.HttpClientImpl.sendAsync(HttpClientImpl.java:659)
-	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:553)
-	... 18 more
+	at java.net.http/jdk.internal.net.http.HttpClientImpl$DelegatingExecutor.execute(HttpClientImpl.java:177)
+	at java.base/java.util.concurrent.CompletableFuture.completeAsync(CompletableFuture.java:2719)
+	at java.net.http/jdk.internal.net.http.MultiExchange.responseAsync(MultiExchange.java:295)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.sendAsync(HttpClientImpl.java:1049)
+	at java.net.http/jdk.internal.net.http.HttpClientImpl.send(HttpClientImpl.java:930)
+	... 7 more
 Caused by: java.nio.channels.UnresolvedAddressException
-	at java.base/sun.nio.ch.Net.checkAddress(Net.java:149)
-	at java.base/sun.nio.ch.Net.checkAddress(Net.java:157)
-	at java.base/sun.nio.ch.SocketChannelImpl.checkRemote(SocketChannelImpl.java:816)
-	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:839)
-	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$0(PlainHttpConnection.java:183)
-	at java.base/java.security.AccessController.doPrivileged(AccessController.java:569)
-	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:185)
-	... 36 more
+	at java.base/sun.nio.ch.Net.checkAddress(Net.java:137)
+	at java.base/sun.nio.ch.Net.checkAddress(Net.java:145)
+	at java.base/sun.nio.ch.SocketChannelImpl.checkRemote(SocketChannelImpl.java:842)
+	at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:865)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.lambda$connectAsync$1(PlainHttpConnection.java:210)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:571)
+	at java.net.http/jdk.internal.net.http.PlainHttpConnection.connectAsync(PlainHttpConnection.java:212)
+	... 25 more
++ '[' -n true ']'
++ set +x
+
+4 packets captured
+4 packets received by filter
+0 packets dropped by kernel
 ```

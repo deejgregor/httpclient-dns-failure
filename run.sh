@@ -20,14 +20,23 @@ if [ -n "$DEBUG" ]; then
     echo ""
 
     tcpdump -n port 53 or port 443 &
+    tcpdump_pid=$!
 fi
 
 if [ -n "$PATCH_MODULE" ]; then
     export JAVA_OPTS="--patch-module $PATCH_MODULE"
 fi
 
-# For oraclelinux
-export JAVA_HOME=$(dirname $(dirname $(readlink /etc/alternatives/java)))
-PATH=$PATH:/usr/local/groovy-4.0.12/bin
+if [ -n "${DEBUG}" ]; then
+    set -x
+fi
+java $JAVA_OPTS /HttpClientTimeout.java "${ASYNC}" "${URL}" "${REQUEST_TIMEOUT}" "${CONNECT_TIMEOUT}"
+if [ -n "${DEBUG}" ]; then
+    set +x
+fi
 
-groovy script.groovy "$@"
+if [ -n "${tcpdump_pid}" ]; then
+    sleep 0.1
+    kill "${tcpdump_pid}"
+    wait
+fi

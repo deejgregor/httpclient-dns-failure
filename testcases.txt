@@ -1,0 +1,8 @@
+work -e URL=${REACHABLE_URL}
+work-on-dns-retry -e FIRST_NAMESERVER=${UNREACHABLE_FIRST_NAMESERVER} -e DNS_TIMEOUT=1 -e SECOND_NAMESERVER=${REACHABLE_SECOND_NAMESERVER} -e URL=${REACHABLE_URL}
+unreachable-url -e URL=${UNREACHABLE_URL}
+unreachable-url-with-patch -e PATCH_MODULE=java.net.http=/java.net.http.jar -e URL=${UNREACHABLE_URL}
+no-dns-faster-timeout-dns -e FIRST_NAMESERVER=${UNREACHABLE_FIRST_NAMESERVER} -e DNS_TIMEOUT=1 -e URL=${REACHABLE_URL}
+no-dns-faster-timeout-dns-with-patch -e FIRST_NAMESERVER=${UNREACHABLE_FIRST_NAMESERVER} -e DNS_TIMEOUT=1 -e PATCH_MODULE=java.net.http=/java.net.http.jar -e URL=${REACHABLE_URL}
+no-dns-faster-timeout-connect -e FIRST_NAMESERVER=${UNREACHABLE_FIRST_NAMESERVER} -e URL=${REACHABLE_URL}
+no-dns-faster-timeout-connect-with-patch -e FIRST_NAMESERVER=${UNREACHABLE_FIRST_NAMESERVER} -e PATCH_MODULE=java.net.http=/java.net.http.jar -e URL=${REACHABLE_URL}
