@@ -1,0 +1,25 @@
+diff --git src/java.net.http/share/classes/jdk/internal/net/http/MultiExchange.java src/java.net.http/share/classes/jdk/internal/net/http/MultiExchange.java
+index afa71130ef9..b3487564886 100644
+--- src/java.net.http/share/classes/jdk/internal/net/http/MultiExchange.java
++++ src/java.net.http/share/classes/jdk/internal/net/http/MultiExchange.java
+@@ -561,8 +561,8 @@ class MultiExchange<T> implements Cancelable {
+         return failedFuture(t);
+     }
+ 
+-    private HttpTimeoutException toTimeoutException(IOException ioe) {
+-        HttpTimeoutException t = null;
++    private IOException toTimeoutException(IOException ioe) {
++        IOException t = null;
+ 
+         // more specific, "request timed out", when connected
+         Exchange<?> exchange = getExchange();
+@@ -576,8 +576,7 @@ class MultiExchange<T> implements Cancelable {
+             }
+         }
+         if (t == null) {
+-            t = new HttpConnectTimeoutException("HTTP connect timed out");
+-            t.initCause(new ConnectException("HTTP connect timed out"));
++            t = ioe;
+         }
+         return t;
+     }

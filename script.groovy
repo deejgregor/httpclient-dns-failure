@@ -3,16 +3,31 @@ import java.time.Duration;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
-// Give enough time for 2 DNS attempts with a 1 second timeout
-request = HttpRequest.newBuilder(new URI("https://www.google.com/")).GET().timeout(Duration.of(3, SECONDS)).build();
+url = args[0]
 
+// Give enough time for 2 DNS attempts with a 1 second timeout
+request = HttpRequest.newBuilder(new URI(url)).GET().timeout(Duration.of(3, SECONDS)).build();
+
+response = null;
 start = System.currentTimeMillis();
+e = null;
+rootCause = null;
 try {
     response = HttpClient.newBuilder().build().send(request, HttpResponse.BodyHandlers.ofString());
-    println("success! " + response.toString());
 } catch (Throwable t) {
-    t.printStackTrace();
+    e = t;
+    rootCause = e;
+    while (rootCause.getCause() != null) {
+        rootCause = rootCause.getCause();
+    }
 }
 end = System.currentTimeMillis();
 
-println("took " + ((end - start) / 1000) + " seconds");
+if (rootCause == null) {
+    println("SUCCESS! Took " + ((end - start) / 1000) + " seconds. " + response);
+} else {
+    println("FAILURE! Took " + ((end - start) / 1000) + " seconds. Root cause exception: " + rootCause);
+    if ("true".equals(System.getenv("DEBUG"))) {
+        e.printStackTrace();
+    }
+}

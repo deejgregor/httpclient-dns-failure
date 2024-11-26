@@ -13,4 +13,9 @@ COPY script.groovy /home/groovy/script.groovy
 COPY run.sh /run.sh
 RUN chmod 755 /run.sh
 
-CMD /run.sh
+COPY java.net.http-patched-jdk-17+11.jar /java.net.http.jar
+
+# Make the default DNS timeout significantly fater
+ENV DNS_TIMEOUT=2
+
+CMD ["/run.sh"]
