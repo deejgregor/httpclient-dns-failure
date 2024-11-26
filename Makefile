@@ -6,6 +6,7 @@ UNREACHABLE_FIRST_NAMESERVER=192.0.2.1 # 192.0.2.1 -- TEST-NET RFC3330
 
 DEBUG="" # set to a non-empty string to see debugging details
 
+DOCKER_IMAGE=httpclient-dns-failure
 DOCKER_BUILD= # set to -q to be quiet
 
 .PHONY: help
@@ -32,44 +33,44 @@ all:
 
 .PHONY: java-version
 java-version: container
-	docker run -it --rm groovy:tcpdump java -version
+	docker run -it --rm $(DOCKER_IMAGE) java -version
 
 .PHONY: work
 work: container
-	docker run -it --rm groovy:tcpdump /run.sh $(REACHABLE_URL)
+	docker run -it --rm $(DOCKER_IMAGE) /run.sh $(REACHABLE_URL)
 
 .PHONY: work-on-dns-retry
 work-on-dns-retry: container
-	docker run -it --rm -e DEBUG=$(DEBUG) -e FIRST_NAMESERVER=$(UNREACHABLE_FIRST_NAMESERVER) -e DNS_TIMEOUT=1 -e SECOND_NAMESERVER=$(REACHABLE_SECOND_NAMESERVER) groovy:tcpdump /run.sh $(REACHABLE_URL)
+	docker run -it --rm -e DEBUG=$(DEBUG) -e FIRST_NAMESERVER=$(UNREACHABLE_FIRST_NAMESERVER) -e DNS_TIMEOUT=1 -e SECOND_NAMESERVER=$(REACHABLE_SECOND_NAMESERVER) $(DOCKER_IMAGE) /run.sh $(REACHABLE_URL)
 
 .PHONY: unreachable-url
 unreachable-url: container
-	docker run -it --rm -e DEBUG=$(DEBUG) groovy:tcpdump /run.sh $(UNREACHABLE_URL)
+	docker run -it --rm -e DEBUG=$(DEBUG) $(DOCKER_IMAGE) /run.sh $(UNREACHABLE_URL)
 
 .PHONY: unreachable-url-with-patch
 unreachable-url-with-patch: container
-	docker run -it --rm -e DEBUG=$(DEBUG) -e PATCH_MODULE=java.net.http=/java.net.http.jar groovy:tcpdump /run.sh $(UNREACHABLE_URL)
+	docker run -it --rm -e DEBUG=$(DEBUG) -e PATCH_MODULE=java.net.http=/java.net.http.jar $(DOCKER_IMAGE) /run.sh $(UNREACHABLE_URL)
 
 .PHONY: break-faster-timeout-dns
 break-faster-timeout-dns: container
-	docker run -it --rm -e DEBUG=$(DEBUG) -e FIRST_NAMESERVER=$(UNREACHABLE_FIRST_NAMESERVER) -e DNS_TIMEOUT=1 groovy:tcpdump /run.sh $(REACHABLE_URL)
+	docker run -it --rm -e DEBUG=$(DEBUG) -e FIRST_NAMESERVER=$(UNREACHABLE_FIRST_NAMESERVER) -e DNS_TIMEOUT=1 $(DOCKER_IMAGE) /run.sh $(REACHABLE_URL)
 
 .PHONY: break-faster-timeout-dns-with-patch
 break-faster-timeout-dns-with-patch: container
-	docker run -it --rm -e DEBUG=$(DEBUG) -e FIRST_NAMESERVER=$(UNREACHABLE_FIRST_NAMESERVER) -e DNS_TIMEOUT=1 -e PATCH_MODULE=java.net.http=/java.net.http.jar groovy:tcpdump /run.sh $(REACHABLE_URL)
+	docker run -it --rm -e DEBUG=$(DEBUG) -e FIRST_NAMESERVER=$(UNREACHABLE_FIRST_NAMESERVER) -e DNS_TIMEOUT=1 -e PATCH_MODULE=java.net.http=/java.net.http.jar $(DOCKER_IMAGE) /run.sh $(REACHABLE_URL)
 
 .PHONY: break-faster-timeout-connect
 break-faster-timeout-connect: container
-	docker run -it --rm -e DEBUG=$(DEBUG) -e FIRST_NAMESERVER=$(UNREACHABLE_FIRST_NAMESERVER) groovy:tcpdump /run.sh $(REACHABLE_URL)
+	docker run -it --rm -e DEBUG=$(DEBUG) -e FIRST_NAMESERVER=$(UNREACHABLE_FIRST_NAMESERVER) $(DOCKER_IMAGE) /run.sh $(REACHABLE_URL)
 
 .PHONY: break-faster-timeout-connect-with-patch
 break-faster-timeout-connect-with-patch: container
-	docker run -it --rm -e DEBUG=$(DEBUG) -e FIRST_NAMESERVER=$(UNREACHABLE_FIRST_NAMESERVER) -e PATCH_MODULE=java.net.http=/java.net.http.jar groovy:tcpdump /run.sh $(REACHABLE_URL)
+	docker run -it --rm -e DEBUG=$(DEBUG) -e FIRST_NAMESERVER=$(UNREACHABLE_FIRST_NAMESERVER) -e PATCH_MODULE=java.net.http=/java.net.http.jar $(DOCKER_IMAGE) /run.sh $(REACHABLE_URL)
 
 .PHONY: container
 container:
-	docker build $(DOCKER_BUILD) -t groovy:tcpdump .
+	docker build $(DOCKER_BUILD) -t $(DOCKER_IMAGE) .
 
 .PHONY: clean
 clean:
-	docker image rm groovy:tcpdump
+	docker image rm $(DOCKER_IMAGE)

@@ -52,20 +52,23 @@ For testing failures, this sets a timeout of 1 second to speed up the process ex
 ## `make all` output
 
 ```
-docker build -q -t groovy:tcpdump .
-sha256:49aff5ad14a04255cfba65003eacc988eaa6eee0fe3cf921fe7f7bdb01112af4
-docker run -it --rm groovy:tcpdump java -version
-openjdk version "17.0.13" 2024-10-15
-OpenJDK Runtime Environment Temurin-17.0.13+11 (build 17.0.13+11)
-OpenJDK 64-Bit Server VM Temurin-17.0.13+11 (build 17.0.13+11, mixed mode, sharing)
-work: SUCCESS! Took 0.283 seconds. (GET https://www.google.com/) 200
-work-on-dns-retry: SUCCESS! Took 1.324 seconds. (GET https://www.google.com/) 200
-unreachable-url: FAILURE! Took 3.104 seconds. Root cause exception: java.net.ConnectException: HTTP connect timed out
-unreachable-url-with-patch: FAILURE! Took 3.098 seconds. Root cause exception: java.net.ConnectException: HTTP connect timed out
-break-faster-timeout-dns: FAILURE! Took 2.134 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
-break-faster-timeout-dns-with-patch: FAILURE! Took 2.134 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
-break-faster-timeout-connect: FAILURE! Took 4.121 seconds. Root cause exception: java.net.ConnectException: HTTP connect timed out
-break-faster-timeout-connect-with-patch: FAILURE! Took 4.127 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
+docker build -q -t httpclient-dns-failure .
+sha256:5cddc5937f8b4fa5152170576e4b3534cfa501a9f00687945fe4f35da4be5931
+
+What's next:
+    View a summary of image vulnerabilities and recommendations → docker scout quickview
+docker run -it --rm httpclient-dns-failure java -version
+openjdk version "21.0.5" 2024-10-15 LTS
+OpenJDK Runtime Environment (Red_Hat-21.0.5.0.11-1.0.1) (build 21.0.5+11-LTS)
+OpenJDK 64-Bit Server VM (Red_Hat-21.0.5.0.11-1.0.1) (build 21.0.5+11-LTS, mixed mode, sharing)
+work: SUCCESS! Took 0.32 seconds. (GET https://www.google.com/) 200
+work-on-dns-retry: SUCCESS! Took 1.327 seconds. (GET https://www.google.com/) 200
+unreachable-url: FAILURE! Took 3.101 seconds. Root cause exception: java.net.ConnectException: HTTP connect timed out
+unreachable-url-with-patch: FAILURE! Took 3.097 seconds. Root cause exception: java.net.ConnectException: HTTP connect timed out
+break-faster-timeout-dns: FAILURE! Took 2.144 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
+break-faster-timeout-dns-with-patch: FAILURE! Took 2.131 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
+break-faster-timeout-connect: FAILURE! Took 4.153 seconds. Root cause exception: java.net.ConnectException: HTTP connect timed out
+break-faster-timeout-connect-with-patch: FAILURE! Took 4.152 seconds. Root cause exception: java.nio.channels.UnresolvedAddressException
 ```
 
 ## `make DOCKER_BUILD=-q DEBUG=true break-faster-timeout-dns`

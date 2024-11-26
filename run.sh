@@ -25,4 +25,9 @@ fi
 if [ -n "$PATCH_MODULE" ]; then
     export JAVA_OPTS="--patch-module $PATCH_MODULE"
 fi
-/usr/bin/groovy script.groovy "$@"
+
+# For oraclelinux
+export JAVA_HOME=$(dirname $(dirname $(readlink /etc/alternatives/java)))
+PATH=$PATH:/usr/local/groovy-4.0.12/bin
+
+groovy script.groovy "$@"
